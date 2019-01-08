@@ -1,46 +1,32 @@
 package org.hyperskill.database.serverside;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
-//java -cp target/...jar com.kkk.app
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 public class Server {
-    private static final int PORT = 34522;
-
     public static void main(String[] args) {
-        try (ServerSocket server = new ServerSocket(PORT)) {
-            while (true) {
-                Session session = new Session(server.accept());
-                session.run(); // it does not block this thread
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (args.length != 1) {
+            System.err.println("Usage: java Server <port number>");
+            System.exit(1);
         }
-    }
-}
 
-class Session {
-    private final Socket socket;
-
-    public Session(Socket socketForClient) {
-        this.socket = socketForClient;
-    }
-
-    public void run() {
-        try (
-            DataInputStream input = new DataInputStream(socket.getInputStream());
-            DataOutputStream output = new DataOutputStream(socket.getOutputStream())
-        ) {
-          System.out.println("Server started!");
-            while(true) {
-                String msg = input.readUTF();
-
-                  System.out.println("Recieved: " + msg);
-                  output.writeUTF(msg);
-                  System.out.println("Sent: " + msg);
-
+        int portNumber = Integer.parseInt(args[0]);
+        Protocol protocol = new Protocol();
+        try (ServerSocket server = new ServerSocket(portNumber)) {
+            while (true) {
+                try (
+                        Socket socket = server.accept(); // accepting a new client
+                        DataInputStream input = new DataInputStream(socket.getInputStream());
+                        DataOutputStream output = new DataOutputStream(socket.getOutputStream())
+                ) {
+                    String inputLine, outputLine;
+                    inputLine = input.readUTF(); // reading a message
+                    outputLine = protocol.processInput(inputLine);
+                    output.writeUTF(outputLine); // resend it to the client
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
