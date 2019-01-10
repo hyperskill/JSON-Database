@@ -1,5 +1,9 @@
 package org.hyperskill.database.serverside;
 
+import com.google.gson.Gson;
+import org.hyperskill.database.common.Request;
+import org.hyperskill.database.common.Response;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -14,7 +18,7 @@ public class Server {
         }
 
         int portNumber = Integer.parseInt(args[0]);
-        Protocol protocol = new Protocol();
+        JsonProtocol protocol = new JsonProtocol();
         try (ServerSocket server = new ServerSocket(portNumber)) {
             while (true) {
                 try (
@@ -24,8 +28,11 @@ public class Server {
                 ) {
                     String inputLine, outputLine;
                     inputLine = input.readUTF(); // reading a message
-                    outputLine = protocol.processInput(inputLine);
-                    output.writeUTF(outputLine); // resend it to the client
+                    Gson gson = new Gson();
+                    Request request = gson.fromJson(inputLine, Request.class);
+                    Response response = protocol.processInput(request);
+                    String out = gson.toJson(response);
+                    output.writeUTF(out); // resend it to the client
                 }
             }
         } catch (IOException e) {

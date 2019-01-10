@@ -2,6 +2,8 @@ package org.hyperskill.database.clientside;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.google.gson.Gson;
+import org.hyperskill.database.common.Request;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -21,8 +23,8 @@ public class Client {
     @Parameter(names = "-m", description = "Text to save")
     String text;
 
-    @Parameter(names = "-i", description = "Index", validateWith = PositiveInteger.class)
-    int index;
+    @Parameter(names = "-i", description = "Index")
+    String index;
 
     public static void main(String... argv) {
         Client client = new Client();
@@ -39,18 +41,11 @@ public class Client {
                 DataInputStream input = new DataInputStream(socket.getInputStream());
                 DataOutputStream output = new DataOutputStream(socket.getOutputStream())
         ) {
-            if (client.command.equals("set")) {
-                if (client.text != null) {
-                    output.writeUTF(client.command + " " + client.index + " " + client.text);
-                    System.out.println("Sent: " + client.command + " " + client.index + " " + client.text);
-                } else {
-                    System.err.println("Text cannot be empty");
-                    System.exit(1);
-                }
-            } else {
-                output.writeUTF(client.command + " " + client.index);
-                System.out.println("Sent: " + client.command + " " + client.index);
-            }
+            Request request = new Request(client.command, client.index, client.text);
+            Gson gson = new Gson();
+            String out = gson.toJson(request);
+            output.writeUTF(out);
+            System.out.println("Sent: " + out);
             String receivedMsg = input.readUTF(); // response message
             System.out.println("Received: " + receivedMsg);
         } catch (IOException e) {
