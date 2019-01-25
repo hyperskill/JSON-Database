@@ -8,23 +8,12 @@ public class Request {
     private String key;
     private String value;
 
-    public Request(String type, String key, String value) {
+    public Request(String type, String key, String value) throws IllegalArgumentException {
         Objects.requireNonNull(type);
         Objects.requireNonNull(key);
 
-        switch (type.trim().toLowerCase()) {
-            case "set":
-                this.type = TYPE.SET;
-                break;
-            case "get":
-                this.type = TYPE.GET;
-                break;
-            case "delete":
-                this.type = TYPE.DELETE;
-                break;
-            default:
-                throw new IllegalArgumentException(type + " is not allowed command");
-        }
+        this.type = validateCommand(type);
+
         if (this.type == TYPE.SET && value == null) {
             throw new IllegalArgumentException("Set command requires value, got null");
         }
@@ -42,5 +31,19 @@ public class Request {
 
     public String getValue() {
         return value;
+    }
+
+    public static TYPE validateCommand(String word) {
+        switch (word.trim().toLowerCase()) {
+            case "set":
+                return TYPE.SET;
+            case "get":
+                return TYPE.GET;
+            case "delete":
+                return TYPE.DELETE;
+            default:
+                throw new IllegalArgumentException(word + " is not allowed command");
+        }
+
     }
 }

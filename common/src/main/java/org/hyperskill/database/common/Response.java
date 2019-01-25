@@ -2,7 +2,28 @@ package org.hyperskill.database.common;
 
 public class Response {
     public enum TYPE {OK, FAIL}
+
+    public boolean isOk() {
+        if (this.type == TYPE.OK) {
+            return true;
+        }
+        return false;
+    }
+
+    public TYPE getType() {
+        return type;
+    }
+
     private TYPE type;
+
+    public String getValue() {
+        return value;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
     private String value;
     private String reason;
 
